@@ -1,0 +1,9 @@
+# ghcr.io/jericop/builder-jammy:stack
+
+description = "Ubuntu jammy builder with no buildpacks included but with stack defined"
+
+# Deprecated stack id
+[stack]
+  id = "io.buildpacks.stacks.jericop.jammy"
+  build-image = "ghcr.io/jericop/build-jammy:stack"
+  run-image = "ghcr.io/jericop/run-jammy:stack"
