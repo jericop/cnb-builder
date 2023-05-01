@@ -1,0 +1,12 @@
+# ghcr.io/jericop/builder-jammy:target
+
+description = "Ubuntu jammy builder with no buildpacks included and no stack defined"
+
+# Images that will be used by the builder
+[build]
+image = "ghcr.io/jericop/build-jammy:target"
+
+
+[run]
+[[run.images]]
+image = "ghcr.io/jericop/run-jammy:target"

@@ -1,0 +1,21 @@
+# ghcr.io/jericop/builder-jammy:latest
+
+description = "ubuntu jammy builder with no buildpacks included but with stack and new build and run images defined."
+
+# Deprecated stack id for backward compatibility only
+[stack]
+  id = "io.buildpacks.stacks.jericop.jammy"
+  build-image = "ghcr.io/jericop/build-jammy:latest"
+  run-image = "ghcr.io/jericop/run-jammy:latest"
+
+# Images that will be used by the builder
+[build]
+image = "ghcr.io/jericop/build-jammy:latest"
+
+
+[run]
+[[run.images]]
+image = "ghcr.io/jericop/run-jammy:latest"
+
+# Initially tried to use the target image (with no stack id set) but got the following error
+# ERROR: invalid run image config: stack 'io.buildpacks.stacks.***.jammy' from builder config is incompatible with stack '' from run image '***/run-jammy:target'
