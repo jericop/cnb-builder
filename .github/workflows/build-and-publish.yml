@@ -1,5 +1,5 @@
 name: Builders 
-on: push
+on: [push, pull_request]
 env:
   DOCKER_CLI_EXPERIMENTAL: 'enabled'
   PUBLISH: ${{ github.ref == 'refs/heads/main' && '--publish' || '' }}
