@@ -58,6 +58,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - uses: jericop/buildpacks-github-actions/setup-pack@add-arm64-support
+        with:
+          pack-version: 0.30.0-pre1
       - id: ttl-sh-uri
         uses: ./.github/actions/ttl-sh-image-uri
       - id: create-builders
@@ -67,9 +70,7 @@ jobs:
           base-image-uri: ${{ steps.ttl-sh-uri.outputs.uri }}
     
       # - uses: actions/checkout@v3
-      # - uses: jericop/buildpacks-github-actions/setup-pack@add-arm64-support
-      #   with:
-      #     pack-version: 0.30.0-pre1
+      
       # - uses: jericop/buildpacks-github-actions/setup-tools@add-arm64-support
       # - uses: docker/login-action@v2
       #   with:
