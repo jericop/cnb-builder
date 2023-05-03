@@ -1,8 +1,9 @@
 name: Builders 
-on: [push, pull_request]
+# on: [push, pull_request]
+on: pull_request
 env:
   DOCKER_CLI_EXPERIMENTAL: 'enabled'
-  PUBLISH: ${{ (github.ref == 'refs/heads/main' && github.event_name != 'pull_request') && '--publish' || '' }}
+  # PUBLISH: ${{ (github.ref == 'refs/heads/main' && github.event_name != 'pull_request') && '--publish' || '' }}
 jobs:
   # arm64-builders:
   #   runs-on: buildjet-4vcpu-ubuntu-2204-arm

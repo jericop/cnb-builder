@@ -31,7 +31,9 @@ runs:
         PUBLISH_FLAG="--publish"
       else
         PUBLISH_FLAG=""
-      fi   
+      fi
+      echo "inputs.publish: ${{ inputs.publish }}""
+      echo "PUBLISH_FLAG: $PUBLISH_FLAG"
 
       set -x
 
