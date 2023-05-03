@@ -32,7 +32,7 @@ runs:
       else
         PUBLISH_FLAG=""
       fi
-      echo "inputs.publish: ${{ inputs.publish }}""
+      echo "inputs.publish: ${{ inputs.publish }}"
       echo "PUBLISH_FLAG: $PUBLISH_FLAG"
 
       set -x
