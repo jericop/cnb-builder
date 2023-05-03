@@ -57,6 +57,7 @@ jobs:
   amd64-and-multi-arch-builders:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v3
       - id: ttl-sh-uri
         uses: ./.github/actions/ttl-sh-image-uri
       - id: create-builders
