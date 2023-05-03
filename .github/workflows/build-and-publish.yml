@@ -55,7 +55,6 @@ jobs:
   #           pack builder inspect "${image_tag}"
   #         done
   amd64-and-multi-arch-builders:
-    needs: arm64-builders
     runs-on: ubuntu-latest
     steps:
       - id: ttl-sh-uri
