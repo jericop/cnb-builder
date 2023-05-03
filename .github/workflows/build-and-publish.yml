@@ -2,7 +2,7 @@ name: Builders
 on: [push, pull_request]
 env:
   DOCKER_CLI_EXPERIMENTAL: 'enabled'
-  PUBLISH: ${{ github.ref == 'refs/heads/main' && '--publish' || '' }}
+  PUBLISH: ${{ (github.ref == 'refs/heads/main' && github.event_name != 'pull_request') && '--publish' || '' }}
 jobs:
   arm64-builders:
     runs-on: buildjet-4vcpu-ubuntu-2204-arm
@@ -12,7 +12,7 @@ jobs:
         with:
           pack-version: 0.30.0-pre1
       - uses: jericop/buildpacks-github-actions/setup-tools@add-arm64-support
-      - if: ${{ github.ref == 'refs/heads/main' }}
+      - if: ${{ github.ref == 'refs/heads/main' && github.event_name != 'pull_request' }}
         uses: docker/login-action@v2
         with:
           registry: ghcr.io
@@ -49,15 +49,15 @@ jobs:
             pack builder inspect "${image_tag}"
           done
   amd64-and-multi-arch-builders:
-    if: ${{ github.ref == 'refs/heads/main' }}
+    if: ${{ github.ref == 'refs/heads/main' && github.event_name != 'pull_request' }}
     needs: arm64-builders
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: jpena-r7/buildpacks-github-actions/setup-pack@add-arm64-support
+      - uses: jericop/buildpacks-github-actions/setup-pack@add-arm64-support
         with:
           pack-version: 0.30.0-pre1
-      - uses: jpena-r7/buildpacks-github-actions/setup-tools@add-arm64-support
+      - uses: jericop/buildpacks-github-actions/setup-tools@add-arm64-support
       - uses: docker/login-action@v2
         with:
           registry: ghcr.io
@@ -86,10 +86,10 @@ jobs:
             fi
           done
       # Test multi-arch builders from amd64
-      - if: ${{ github.ref == 'refs/heads/main' }}
+      - if: ${{ github.ref == 'refs/heads/main' && github.event_name != 'pull_request' }}
         uses: ./.github/actions/multi-arch-builder-test
   arm64-multi-arch-builder-test:
-    if: ${{ github.ref == 'refs/heads/main' }}
+    if: ${{ github.ref == 'refs/heads/main' && github.event_name != 'pull_request' }}
     needs: amd64-and-multi-arch-builders
     runs-on: buildjet-4vcpu-ubuntu-2204-arm
     steps:
