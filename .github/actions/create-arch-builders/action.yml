@@ -55,7 +55,7 @@ runs:
           fi
         else
           image_tag="${base_image_uri}:${tag}-amd64"
-          pack builder create "${image_tag}" --config "builder-${tag}.toml" ${{ env.PUBLISH }}
+          pack builder create "${image_tag}" --config "builder-${tag}.toml" $PUBLISH_FLAG
         fi
 
         docker pull "${image_tag}"
