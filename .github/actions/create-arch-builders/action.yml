@@ -1,0 +1,62 @@
+name:        'Create architecture-specific builders'
+description: 'Install the Cloud Native Buildpacks pack CLI and add it to $PATH'
+author:      'Jerico Pena'
+
+inputs:
+  folder:
+    description:  'The folder containing builder toml files to be built'
+    required:     true
+  base-image-uri:
+    description:  'The base image uri (registry-url/repo-name)'
+    required:     true
+  publish:
+    description:  'Set to `true` to have pack publish to the registry or `false` to save builders to the docker daemon'
+    required:     false
+    default:      'true'
+
+runs:
+  using: "composite"
+  steps:
+  - name:  Create and publish arch-specific builders
+    shell: bash
+    run:   |
+      #!/usr/bin/env bash -euo pipefail
+
+      base_image_uri=${{ inputs.base-image-uri }}
+      tags=$(ls *.toml | xargs -n1 | cut -d- -f2 | cut -d. -f1)
+
+      if [ "${{ inputs.publish }}" = "true" ]; then
+        PUBLISH_FLAG="--publish"
+      else
+        PUBLISH_FLAG=""
+      fi
+
+      cd ${{ inputs.folder }}      
+
+      set -x
+
+      for tag in $tags; do
+        
+        if [ $(arch) = "aarch64" ]; then
+          image_tag="${base_image_uri}:${tag}-arm64"
+          pack builder create "${image_tag}" --config "builder-${tag}.toml"
+
+          # As of pack version 0.30.0-pre1 publishing with `--publish` will set the platform to linux/amd64 on arm64,
+          if [ ! -z "$PUBLISH" ]; then
+            echo "Publishing with buildx on arm64 to ensure image gets correct platform"
+            
+            echo "FROM ${image_tag}" > Dockerfile
+            docker buildx build --platform linux/arm64 -t "${image_tag}" --push .
+
+            # Remove local version so we can inspect architecture from the registry
+            docker image rm "${image_tag}"
+          fi
+        else
+          image_tag="${base_image_uri}:${tag}-amd64"
+          pack builder create "${image_tag}" --config "builder-${tag}.toml" ${{ env.PUBLISH }}
+        fi
+        
+        docker pull "${image_tag}"
+        docker image inspect "${image_tag}" | jq .[0].Architecture
+        pack builder inspect "${image_tag}"
+      done
