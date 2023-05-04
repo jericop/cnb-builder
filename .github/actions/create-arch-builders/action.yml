@@ -33,7 +33,9 @@ runs:
       base_image_uri=${{ inputs.base-image-uri }}
       tags=$(ls *.toml | xargs -n1 | cut -d- -f2 | cut -d. -f1)
 
-      echo "tags=\"$tags\"" >> $GITHUB_OUTPUT
+      echo "tags=$tags" >> $GITHUB_OUTPUT
+
+      exit 0
 
       if [ "${{ inputs.publish }}" = "true" ]; then
         PUBLISH="--publish"
