@@ -49,7 +49,7 @@ runs:
         for tag in ${{ inputs.tags }}; do
 
           # Full support for targets withcout staks has not landed yet, so skipping test for it (missing run images)
-          if [ "$tag" = "target" ];
+          if [ "$tag" = "target" ]; then
             continue
           fi
 
