@@ -17,12 +17,13 @@ inputs:
 outputs:
   tags:
     description: "Image tags minus architecture such as `latest` rather than `latest-amd64`"
-    value: ${{ steps.image-uri-generator.outputs.tags }}
+    value: ${{ steps.arch-builders.outputs.tags }}
 
 runs:
   using: "composite"
   steps:
-  - name:  Create and publish arch-specific builders
+  - id: arch-builders
+    name:  Create and publish arch-specific builders
     shell: bash
     run:   |
       #!/usr/bin/env bash -euo pipefail
