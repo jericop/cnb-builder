@@ -3,8 +3,65 @@ name: Builders
 on: pull_request
 env:
   DOCKER_CLI_EXPERIMENTAL: 'enabled'
-  # PUBLISH: ${{ (github.ref == 'refs/heads/main' && github.event_name != 'pull_request') && '--publish' || '' }}
 jobs:
+  # Ephemeral registry image uri for testing
+  ttl-sh:
+    runs-on: ubuntu-22.04
+    outputs:
+      output1: ${{ steps.image-uri.outputs.uri }}
+    steps:
+      - id: image-uri
+        run: echo "uri=ttl.sh/${{ github.repository }}/$(cat /proc/sys/kernel/random/uuid)" >> $GITHUB_OUTPUT
+  
+  arch-build-matrix:
+    strategy:
+      matrix:
+        os: [ubuntu-22.04, buildjet-4vcpu-ubuntu-2204-arm]
+    runs-on: ${{ matrix.os }}
+    needs: ttl-sh
+    steps:
+      - uses: actions/checkout@v3
+      - uses: jericop/buildpacks-github-actions/setup-pack@add-arm64-support
+        with:
+          pack-version: 0.30.0-pre1
+      - id: create-builders
+        uses: ./.github/actions/create-arch-builders
+        with:
+          folder: 'jammy'
+          base-image-uri: ${{ needs.ttl-sh.outputs.uri }}
+  
+  multi-arch-builders:
+    runs-on: ubuntu-22.04
+    needs: arch-build-matrix
+    steps:
+      - uses: actions/checkout@v3
+      - uses: jericop/buildpacks-github-actions/setup-pack@add-arm64-support
+        with:
+          pack-version: 0.30.0-pre1
+      - name: Create multi-arch builders
+        id: create-multi-arch-arbuilders
+        uses: ./.github/actions/create-multi-arch-builders
+        with:
+          tags: ${{ needs.arch-build-matrix.outputs.tags }}
+          base-image-uri: ${{ needs.ttl-sh.outputs.uri }}
+  
+  # test-multi-arch-builders:
+  #   strategy:
+  #     matrix:
+  #       os: [ubuntu-22.04, buildjet-4vcpu-ubuntu-2204-arm]
+  #   runs-on: ${{ matrix.os }}
+  #   needs: [arch-build-matrix, multi-arch-builders]
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - uses: jericop/buildpacks-github-actions/setup-pack@add-arm64-support
+  #       with:
+  #         pack-version: 0.30.0-pre1
+  #     - uses: jericop/buildpacks-github-actions/setup-tools@add-arm64-support
+  #     - id: create-builders
+  #       uses: ./.github/actions/test-multi-arch-builders
+  #       with:
+  #         tags: ${{ needs.arch-build-matrix.outputs.tags }}
+  #         base-image-uri: ${{ needs.ttl-sh.outputs.uri }}
   # arm64-builders:
   #   runs-on: buildjet-4vcpu-ubuntu-2204-arm
   #   steps:
@@ -55,20 +112,20 @@ jobs:
 
   #           pack builder inspect "${image_tag}"
   #         done
-  amd64-and-multi-arch-builders:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: jericop/buildpacks-github-actions/setup-pack@add-arm64-support
-        with:
-          pack-version: 0.30.0-pre1
-      - id: ttl-sh-uri
-        uses: ./.github/actions/ttl-sh-image-uri
-      - id: create-builders
-        uses: ./.github/actions/create-arch-builders
-        with:
-          folder: 'jammy'
-          base-image-uri: ${{ steps.ttl-sh-uri.outputs.uri }}
+  # amd64-and-multi-arch-builders:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - uses: jericop/buildpacks-github-actions/setup-pack@add-arm64-support
+  #       with:
+  #         pack-version: 0.30.0-pre1
+  #     - id: ttl-sh-uri
+  #       uses: ./.github/actions/ttl-sh-image-uri
+  #     - id: create-builders
+  #       uses: ./.github/actions/create-arch-builders
+  #       with:
+  #         folder: 'jammy'
+  #         base-image-uri: ${{ steps.ttl-sh-uri.outputs.uri }}
     
       # - uses: actions/checkout@v3
       

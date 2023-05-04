@@ -1,0 +1,40 @@
+name:        'Create multi-arch builders'
+description: 'Creates and publish multi-arch (amd64 and arm64) builders from given inputs'
+author:      'Jerico Pena'
+
+inputs:
+  tags:
+    description:  'Space-separated list of tags'
+    required:     true
+  base-image-uri:
+    description:  'The base image uri (registry-url/repo-name)'
+    required:     true
+  publish:
+    description:  'Set to `true` to push manifest image to the registry'
+    required:     false
+    default:      'true'
+
+runs:
+  using: "composite"
+  steps:
+    - name: Create multi-arch builders
+      shell: bash
+      run: |
+        #!/usr/bin/env bash -euo pipefail
+
+        if [ "${{ inputs.publish }}" = "true" ]; then
+          PUBLISH="true"
+        else
+          PUBLISH=""
+        fi
+        
+        set -x
+        for tag in ${{ inputs.tags }}; do
+          image_tag="${{ inputs.base-image-uri }}:${tag}"
+          docker buildx imagetools create -t "${image_tag}" "${image_tag}-arm64" "${image_tag}-amd64" --dry-run
+          if [ ! -z "$PUBLISH" ]; then
+            docker buildx imagetools create -t "${image_tag}" "${image_tag}-arm64" "${image_tag}-amd64"
+            docker buildx imagetools inspect "${image_tag}"
+          fi
+        done
+  

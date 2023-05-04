@@ -14,6 +14,11 @@ inputs:
     required:     false
     default:      'true'
 
+outputs:
+  tags:
+    description: "Image tags minus architecture such as `latest` rather than `latest-amd64`"
+    value: ${{ steps.image-uri-generator.outputs.tags }}
+
 runs:
   using: "composite"
   steps:
@@ -62,3 +67,5 @@ runs:
         docker image inspect "${image_tag}" | jq .[0].Architecture
         pack builder inspect "${image_tag}"
       done
+
+      echo "tags=$tags" >> $GITHUB_OUTPUT
