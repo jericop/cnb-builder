@@ -1,0 +1,52 @@
+name: 'Deletes images for architecture-specific builders'
+description: 'Deletes images (not just tags) for architecture-specific builders'
+
+inputs:
+  tags:
+    description:  'Space-separated list of tags'
+    required:     true
+  base-image-uri:
+    description:  'The base image uri in the form `<registry-url>/<repo-name>` (without tag)'
+    required:     true
+  registry-username:
+    description:  'registry username (for given base-image-uri)'
+    required:     false
+    default:      ''
+  registry-password:
+    description:  'registry password (for given base-image-uri)'
+    required:     false
+    default:      ''
+
+runs:
+  using: "composite"
+  steps:
+    - shell: bash
+      run: |
+        skopeo_image=quay.io/skopeo/stable:latest
+        registry=$(echo ${{ inputs.base-image-uri }} | cut -d/ -f1)
+
+        docker pull --quiet "${skopeo_image}"
+        docker volume create skopeo
+
+        if [ ! -z "${{ inputs.registry-password}}" ]; then
+          docker run --rm \
+            --volume skopeo:/skopeo \
+            --env REGISTRY_AUTH_FILE=/skopeo/auth.json \
+            "${skopeo_image}" \
+            login "${registry}" --username ${{ inputs.registry-username}} --password ${{ inputs.registry-password}}
+        fi
+
+        set -x
+
+        for tag in ${{ inputs.tags }}; do
+          for architecture in amd64 arm64; do
+            image_tag="${{ inputs.base-image-uri }}:${tag}-${architecture}"
+            docker run --rm \
+              --volume skopeo:/skopeo \
+              --env REGISTRY_AUTH_FILE=/skopeo/auth.json \
+              "${skopeo_image}" \
+              delete "docker://${image_tag}"
+          done
+        done
+
+        docker volume rm skopeo
