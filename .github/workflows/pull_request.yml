@@ -8,7 +8,7 @@ jobs:
   ttl-sh:
     runs-on: ubuntu-22.04
     outputs:
-      output1: ${{ steps.image-uri.outputs.uri }}
+      uri: ${{ steps.image-uri.outputs.uri }}
     steps:
       - id: image-uri
         run: echo "uri=ttl.sh/${{ github.repository }}/$(cat /proc/sys/kernel/random/uuid)" >> $GITHUB_OUTPUT
