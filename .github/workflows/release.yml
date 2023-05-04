@@ -1,5 +1,8 @@
 name: jammy build and release
-on: pull_request
+on:
+  push:
+    branches:
+      - "main"
 env:
   BASE_IMAGE_URI: 'ghcr.io/jericop/builder-jammy'
   DOCKER_CLI_EXPERIMENTAL: 'enabled'

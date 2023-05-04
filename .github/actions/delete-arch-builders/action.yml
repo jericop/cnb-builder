@@ -25,7 +25,7 @@ runs:
         skopeo_image=quay.io/skopeo/stable:latest
         registry=$(echo ${{ inputs.base-image-uri }} | cut -d/ -f1)
 
-        docker pull "${skopeo_image}"
+        docker pull --quiet "${skopeo_image}"
         docker volume create skopeo
 
         if [ ! -z "${{ inputs.registry-password}}" ]; then
@@ -35,6 +35,8 @@ runs:
             "${skopeo_image}" \
             login "${registry}" --username ${{ inputs.registry-username}} --password ${{ inputs.registry-password}}
         fi
+
+        set -x
 
         for tag in ${{ inputs.tags }}; do
           for architecture in amd64 arm64; do
