@@ -35,6 +35,7 @@ jobs:
     runs-on: ubuntu-22.04
     needs: create-arch-builders-matrix
     steps:
+      - uses: actions/checkout@v3
       - uses: jericop/buildpacks-github-actions/setup-pack@add-arm64-support
         with:
           pack-version: 0.30.0-pre1
