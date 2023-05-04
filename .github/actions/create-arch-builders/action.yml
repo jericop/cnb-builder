@@ -6,6 +6,9 @@ inputs:
   folder:
     description:  'The folder containing builder toml files in the form of `builder-<tag>.toml`'
     required:     true
+  tags:
+    description:  'Space-separated list of tags'
+    required:     true
   base-image-uri:
     description:  'The base image uri in the form `<registry-url>/<repo-name>` (without tag)'
     required:     true
@@ -13,11 +16,6 @@ inputs:
     description:  'Set to `true` to have pack publish to the registry or `false` to save builders to the docker daemon'
     required:     false
     default:      'true'
-
-outputs:
-  tags:
-    description: "Image tags minus architecture suffix such as `latest` rather than `latest-amd64`"
-    value: ${{ steps.create-arch-specific-builders.outputs.tags }}
 
 runs:
   using: "composite"
@@ -28,12 +26,10 @@ runs:
     run:   |
       #!/usr/bin/env bash -euo pipefail
 
-      cd ${{ inputs.folder }}   
+      cd ${{ inputs.folder }}
 
       base_image_uri=${{ inputs.base-image-uri }}
-      tags=$(ls *.toml | xargs -n1 | cut -d- -f2 | cut -d. -f1)
-
-      echo "tags=$tags" >> $GITHUB_OUTPUT
+      tags="${{ inputs.tags }}"
 
       if [ "${{ inputs.publish }}" = "true" ]; then
         PUBLISH="--publish"
