@@ -32,6 +32,8 @@ runs:
       base_image_uri=${{ inputs.base-image-uri }}
       tags=$(ls *.toml | xargs -n1 | cut -d- -f2 | cut -d. -f1)
 
+      echo "tags=\"$tags\"" >> $GITHUB_OUTPUT
+
       if [ "${{ inputs.publish }}" = "true" ]; then
         PUBLISH="--publish"
       else
@@ -65,5 +67,3 @@ runs:
         docker image inspect "${image_tag}" | jq .[0].Architecture
         pack builder inspect "${image_tag}"
       done
-
-      echo "tags=$tags" >> $GITHUB_OUTPUT
