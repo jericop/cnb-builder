@@ -1,5 +1,5 @@
 name:        'Create multi-arch builders'
-description: 'Creates and publish multi-arch (amd64 and arm64) builders from given inputs'
+description: 'Create multi-arch builders'
 author:      'Jerico Pena'
 
 inputs:

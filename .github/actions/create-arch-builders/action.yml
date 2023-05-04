@@ -6,9 +6,6 @@ inputs:
   folder:
     description:  'The folder containing builder toml files in the form of `builder-<tag>.toml`'
     required:     true
-  tags:
-    description:  'Space-separated list of tags'
-    required:     true
   base-image-uri:
     description:  'The base image uri in the form `<registry-url>/<repo-name>` (without tag)'
     required:     true
@@ -16,6 +13,11 @@ inputs:
     description:  'Set to `true` to have pack publish to the registry or `false` to save builders to the docker daemon'
     required:     false
     default:      'true'
+
+outputs:
+  tags:
+    description: "Space separated builder tags derived from `builder-<tag>.toml` in given folder"
+    value: ${{ steps.create-arch-specific-builders.outputs.tags }}
 
 runs:
   using: "composite"
@@ -29,7 +31,9 @@ runs:
       cd ${{ inputs.folder }}
 
       base_image_uri=${{ inputs.base-image-uri }}
-      echo "${{ inputs.tags }}"
+      tags=$(ls *.toml | xargs -n1 | cut -d- -f2 | cut -d. -f1 | xargs)
+
+      echo "tags=$tags" >> $GITHUB_OUTPUT
 
       if [ "${{ inputs.publish }}" = "true" ]; then
         PUBLISH="--publish"
@@ -39,7 +43,7 @@ runs:
 
       set -x
 
-      for tag in ${{ inputs.tags }}; do
+      for tag in $tags; do
 
         if [ $(arch) = "aarch64" ]; then
           image_tag="${base_image_uri}:${tag}-arm64"

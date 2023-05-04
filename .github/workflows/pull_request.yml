@@ -3,24 +3,23 @@ on: pull_request
 env:
   DOCKER_CLI_EXPERIMENTAL: 'enabled'
 jobs:
-  setup:
+  # Use un-authenticated ephemeral registry image uri for testing
+  ttl-sh:
     runs-on: ubuntu-22.04
     outputs:
-      ttl-sh-uri: ${{ steps.setup.outputs.uri }}
-      tags: ${{ steps.setup.outputs.tags}}
+      uri: ${{ steps.image-uri.outputs.uri }}
     steps:
-      - uses: actions/checkout@v3
-      - id: setup
-        uses: ./.github/actions/setup
-        with:
-          folder: 'jammy'
+      - id: image-uri
+        run: echo "uri=ttl.sh/${{ github.repository }}/$(cat /proc/sys/kernel/random/uuid)" >> $GITHUB_OUTPUT
 
   create-arch-builders-matrix:
     strategy:
       matrix:
         os: [ubuntu-22.04, buildjet-4vcpu-ubuntu-2204-arm]
     runs-on: ${{ matrix.os }}
-    needs: setup
+    needs: ttl-sh
+    outputs:
+      tags: ${{ steps.create-arch-builders.outputs.tags}}
     steps:
       - uses: actions/checkout@v3
       - uses: jericop/buildpacks-github-actions/setup-pack@add-arm64-support
@@ -30,21 +29,19 @@ jobs:
         uses: ./.github/actions/create-arch-builders
         with:
           folder: 'jammy'
-          tags: ${{ needs.setup.outputs.tags }}
-          base-image-uri: ${{ needs.setup.outputs.ttl-sh-uri }}
+          base-image-uri: ${{ needs.ttl-sh.outputs.uri }}
 
   create-multi-arch-builders:
     runs-on: ubuntu-22.04
     needs: create-arch-builders-matrix
     steps:
-      - uses: actions/checkout@v3
       - uses: jericop/buildpacks-github-actions/setup-pack@add-arm64-support
         with:
           pack-version: 0.30.0-pre1
       - uses: ./.github/actions/create-multi-arch-builders
         with:
-          tags: ${{ needs.setup.outputs.tags }}
-          base-image-uri: ${{ needs.setup.outputs.ttl-sh-uri }}
+          tags: ${{ needs.create-arch-builders-matrix.outputs.tags }}
+          base-image-uri: ${{ needs.ttl-sh.outputs.uri }}
 
   test-multi-arch-builders:
     strategy:
@@ -58,7 +55,8 @@ jobs:
         with:
           pack-version: 0.30.0-pre1
       - uses: jericop/buildpacks-github-actions/setup-tools@add-arm64-support
-      - uses: ./.github/actions/test-multi-arch-builders
+      - id: create-builders
+        uses: ./.github/actions/test-multi-arch-builders
         with:
-          tags: ${{ needs.setup.outputs.tags }}
-          base-image-uri: ${{ needs.setup.outputs.ttl-sh-uri }}
+          tags: ${{ needs.create-arch-builders-matrix.outputs.tags }}
+          base-image-uri: ${{ needs.ttl-sh.outputs.uri }}
