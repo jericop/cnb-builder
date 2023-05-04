@@ -1,5 +1,5 @@
-name:        'Create architecture-specific builders'
-description: 'Install the Cloud Native Buildpacks pack CLI and add it to $PATH'
+name:        'Test multi-arch builders'
+description: 'Test multi-arch builders'
 author:      'Jerico Pena'
 
 inputs:
@@ -7,42 +7,58 @@ inputs:
     description:  'Space-separated list of tags'
     required:     true
   base-image-uri:
-    description:  'The base image uri (registry-url/repo-name)'
+    description:  'The base image uri in the form `<registry-url>/<repo-name>` (without tag)'
     required:     true
-  publish:
-    description:  'Set to `true` to have pack publish to the registry or `false` to save builders to the docker daemon'
-    required:     false
-    default:      'true'
-
-outputs:
-  tags:
-    description: "Image tags minus architecture such as `latest` rather than `latest-amd64`"
-    value: ${{ steps.image-uri-generator.outputs.tags }}
 
 runs:
   using: "composite"
   steps:
-    - name: Create multi-arch builders
+    - name: Test multi-arch builders
       shell: bash
       run: |
         #!/usr/bin/env bash -euo pipefail
 
-        if [ "${{ inputs.publish }}" = "true" ]; then
-          PUBLISH="true"
-        else
-          PUBLISH=""
-        fi
-        
         set -x
+
+        base_image_uri=${{ inputs.base-image-uri }}
+
+        if [[ ! -d samples ]]; then git clone https://github.com/buildpacks/samples.git; fi
+
+        cd samples/apps/bash-script/bash-script-buildpack
+        mv buildpack.toml original.toml
+
+        cat original.toml
+
+        # Allow any stack to be used and add targets
+        cat original.toml | yj -tj | jq '. + {stacks: [{id: "*"}]} + {targets:[{os: "linux", arch: "amd64"}, {os: "linux", arch: "arm64"}]}' | yj -jt > buildpack.toml
+        rm original.toml
+
+        cat buildpack.toml
+
+        # Print env to see CNB_TARGET environment variables
+        # As outlined here: https://github.com/buildpacks/spec/pull/336/files
+        if ! grep -q ^env$ bin/build ; then
+          echo "echo \"Environment variables set during the build\"" >> bin/build
+          echo "env" >> bin/build
+        fi
+
+        cd ..
+
+        pack version
+
         for tag in ${{ inputs.tags }}; do
-          image_tag="${{ inputs.base-image-uri }}:${tag}"
-          docker buildx imagetools create -t "${image_tag}" "${image_tag}-arm64" "${image_tag}-amd64" --dry-run
-          if [ ! -z "$PUBLISH" ]; then
-            docker buildx imagetools create -t "${image_tag}" "${image_tag}-arm64" "${image_tag}-amd64"
-            docker buildx imagetools inspect "${image_tag}"
+
+          # Full support for targets withcout staks has not landed yet, so skipping test for it (missing run images)
+          if [ "$tag" = "target" ];
+            continue
           fi
+
+          builder_image_tag="${base_image_uri}:${tag}"
+
+          # Verify lifecycle binary works on this platform
+          docker run --rm "${builder_image_tag}" arch
+          docker run --rm "${builder_image_tag}" /cnb/lifecycle/lifecycle -version
+
+          # Build an app with the the multi-arch builder
+          pack build "sample-bash-script-app:${tag}" --builder "${builder_image_tag}"
         done
-    # Test multi-arch builders from amd64
-    - if: ${{ github.ref == 'refs/heads/main' && github.event_name != 'pull_request' }}
-      uses: ./.github/actions/multi-arch-builder-test
-  

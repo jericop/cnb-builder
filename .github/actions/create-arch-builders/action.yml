@@ -1,23 +1,29 @@
 name:        'Create architecture-specific builders'
-description: 'Install the Cloud Native Buildpacks pack CLI and add it to $PATH'
+description: 'Create architecture-specific builders'
 author:      'Jerico Pena'
 
 inputs:
   folder:
-    description:  'The folder containing builder toml files to be built'
+    description:  'The folder containing builder toml files in the form of `builder-<tag>.toml`'
     required:     true
   base-image-uri:
-    description:  'The base image uri (registry-url/repo-name)'
+    description:  'The base image uri in the form `<registry-url>/<repo-name>` (without tag)'
     required:     true
   publish:
     description:  'Set to `true` to have pack publish to the registry or `false` to save builders to the docker daemon'
     required:     false
     default:      'true'
 
+outputs:
+  tags:
+    description: "Image tags minus architecture suffix such as `latest` rather than `latest-amd64`"
+    value: ${{ steps.create-arch-specific-builders.outputs.tags }}
+
 runs:
   using: "composite"
   steps:
-  - name:  Create and publish arch-specific builders
+  - id: create-arch-specific-builders
+    name:  Create and publish arch-specific builders
     shell: bash
     run:   |
       #!/usr/bin/env bash -euo pipefail
@@ -26,6 +32,8 @@ runs:
 
       base_image_uri=${{ inputs.base-image-uri }}
       tags=$(ls *.toml | xargs -n1 | cut -d- -f2 | cut -d. -f1)
+
+      echo "tags=$tags" >> $GITHUB_OUTPUT
 
       if [ "${{ inputs.publish }}" = "true" ]; then
         PUBLISH="--publish"

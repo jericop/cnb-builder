@@ -7,7 +7,7 @@ inputs:
     description:  'Space-separated list of tags'
     required:     true
   base-image-uri:
-    description:  'The base image uri (registry-url/repo-name)'
+    description:  'The base image uri in the form `<registry-url>/<repo-name>` (without tag)'
     required:     true
   publish:
     description:  'Set to `true` to push manifest image to the registry'
@@ -27,7 +27,7 @@ runs:
         else
           PUBLISH=""
         fi
-        
+
         set -x
         for tag in ${{ inputs.tags }}; do
           image_tag="${{ inputs.base-image-uri }}:${tag}"
