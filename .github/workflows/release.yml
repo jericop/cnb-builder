@@ -9,7 +9,6 @@ jobs:
       matrix:
         os: [ubuntu-22.04, buildjet-4vcpu-ubuntu-2204-arm]
     runs-on: ${{ matrix.os }}
-    needs: ttl-sh
     outputs:
       tags: ${{ steps.create-arch-builders.outputs.tags}}
     steps:
@@ -30,7 +29,7 @@ jobs:
 
   create-multi-arch-builders:
     runs-on: ubuntu-22.04
-    needs: [ttl-sh, create-arch-builders-matrix]
+    needs: create-arch-builders-matrix
     steps:
       - uses: actions/checkout@v3
       - uses: jericop/buildpacks-github-actions/setup-pack@add-arm64-support
