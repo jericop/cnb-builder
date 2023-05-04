@@ -23,5 +23,5 @@ runs:
         cd ${{ inputs.folder }}
         tags=$(ls *.toml | xargs -n1 | cut -d- -f2 | cut -d. -f1)
 
-        echo "tags=$tags" >> $GITHUB_OUTPUT
+        echo "tags=\\"$tags\\"" >> $GITHUB_OUTPUT
         echo "uri=ttl.sh/${{ github.repository }}/$(cat /proc/sys/kernel/random/uuid)" >> $GITHUB_OUTPUT
