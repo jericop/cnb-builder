@@ -1,0 +1,53 @@
+name: jammy build and release
+on: pull_request
+env:
+  BASE_IMAGE_URI: 'ghcr.io/jericop/builder-jammy'
+  DOCKER_CLI_EXPERIMENTAL: 'enabled'
+jobs:
+  create-arch-builders-matrix:
+    strategy:
+      matrix:
+        os: [ubuntu-22.04, buildjet-4vcpu-ubuntu-2204-arm]
+    runs-on: ${{ matrix.os }}
+    needs: ttl-sh
+    outputs:
+      tags: ${{ steps.create-arch-builders.outputs.tags}}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: jericop/buildpacks-github-actions/setup-pack@add-arm64-support
+        with:
+          pack-version: 0.30.0-pre1
+      - uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_TOKEN }}
+      - id: create-arch-builders
+        uses: ./.github/actions/create-arch-builders
+        with:
+          folder: 'jammy'
+          base-image-uri: ${{ env.BASE_IMAGE_URI }}
+
+  create-multi-arch-builders:
+    runs-on: ubuntu-22.04
+    needs: [ttl-sh, create-arch-builders-matrix]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: jericop/buildpacks-github-actions/setup-pack@add-arm64-support
+        with:
+          pack-version: 0.30.0-pre1
+      - uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_TOKEN }}
+      - uses: ./.github/actions/create-multi-arch-builders
+        with:
+          tags: ${{ needs.create-arch-builders-matrix.outputs.tags }}
+          base-image-uri: ${{ env.BASE_IMAGE_URI }}
+      - uses: ./.github/actions/delete-arch-builders
+        with:
+          tags: ${{ needs.create-arch-builders-matrix.outputs.tags }}
+          base-image-uri: ${{ env.BASE_IMAGE_URI }}
+          registry-username: ${{ github.actor }}
+          registry-password: ${{ secrets.GHCR_TOKEN }}

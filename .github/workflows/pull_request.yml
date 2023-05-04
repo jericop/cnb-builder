@@ -1,4 +1,4 @@
-name: Test Builders
+name: jammy build and test
 on: pull_request
 env:
   DOCKER_CLI_EXPERIMENTAL: 'enabled'
@@ -40,6 +40,10 @@ jobs:
         with:
           pack-version: 0.30.0-pre1
       - uses: ./.github/actions/create-multi-arch-builders
+        with:
+          tags: ${{ needs.create-arch-builders-matrix.outputs.tags }}
+          base-image-uri: ${{ needs.ttl-sh.outputs.uri }}
+      - uses: ./.github/actions/delete-arch-builders
         with:
           tags: ${{ needs.create-arch-builders-matrix.outputs.tags }}
           base-image-uri: ${{ needs.ttl-sh.outputs.uri }}
