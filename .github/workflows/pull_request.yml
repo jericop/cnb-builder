@@ -43,10 +43,6 @@ jobs:
         with:
           tags: ${{ needs.create-arch-builders-matrix.outputs.tags }}
           base-image-uri: ${{ needs.ttl-sh.outputs.uri }}
-      - uses: ./.github/actions/delete-arch-builders
-        with:
-          tags: ${{ needs.create-arch-builders-matrix.outputs.tags }}
-          base-image-uri: ${{ needs.ttl-sh.outputs.uri }}
 
   test-multi-arch-builders:
     strategy:

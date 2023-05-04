@@ -1,5 +1,5 @@
-name: 'Deletes tags for architecture-specific builders'
-description: 'Deletes tags for architecture-specific builders'
+name: 'Deletes images for architecture-specific builders'
+description: 'Deletes images (not just tags) for architecture-specific builders'
 
 inputs:
   tags:

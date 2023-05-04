@@ -47,9 +47,3 @@ jobs:
         with:
           tags: ${{ needs.create-arch-builders-matrix.outputs.tags }}
           base-image-uri: ${{ env.BASE_IMAGE_URI }}
-      - uses: ./.github/actions/delete-arch-builders
-        with:
-          tags: ${{ needs.create-arch-builders-matrix.outputs.tags }}
-          base-image-uri: ${{ env.BASE_IMAGE_URI }}
-          registry-username: ${{ github.actor }}
-          registry-password: ${{ secrets.GHCR_TOKEN }}
