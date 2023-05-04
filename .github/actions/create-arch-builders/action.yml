@@ -29,7 +29,7 @@ runs:
       cd ${{ inputs.folder }}
 
       base_image_uri=${{ inputs.base-image-uri }}
-      tags="${{ inputs.tags }}"
+      echo "${{ inputs.tags }}"
 
       if [ "${{ inputs.publish }}" = "true" ]; then
         PUBLISH="--publish"
@@ -39,7 +39,7 @@ runs:
 
       set -x
 
-      for tag in $tags; do
+      for tag in ${{ inputs.tags }}; do
 
         if [ $(arch) = "aarch64" ]; then
           image_tag="${base_image_uri}:${tag}-arm64"
