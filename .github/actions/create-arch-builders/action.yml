@@ -14,16 +14,10 @@ inputs:
     required:     false
     default:      'true'
 
-outputs:
-  tags:
-    description: "Image tags minus architecture such as `latest` rather than `latest-amd64`"
-    value: ${{ steps.arch-builders.outputs.tags }}
-
 runs:
   using: "composite"
   steps:
-  - id: arch-builders
-    name:  Create and publish arch-specific builders
+  - name:  Create and publish arch-specific builders
     shell: bash
     run:   |
       #!/usr/bin/env bash -euo pipefail
@@ -31,43 +25,38 @@ runs:
       cd ${{ inputs.folder }}   
 
       base_image_uri=${{ inputs.base-image-uri }}
-      toml_tags=$(ls *.toml | xargs -n1 | cut -d- -f2 | cut -d. -f1)
+      tags=$(ls *.toml | xargs -n1 | cut -d- -f2 | cut -d. -f1)
 
-      echo "tags=$toml_tags"
-      echo "tags=$toml_tags" >> $GITHUB_OUTPUT
+      if [ "${{ inputs.publish }}" = "true" ]; then
+        PUBLISH="--publish"
+      else
+        PUBLISH=""
+      fi
 
-      # exit 0
+      set -x
 
-      # if [ "${{ inputs.publish }}" = "true" ]; then
-      #   PUBLISH="--publish"
-      # else
-      #   PUBLISH=""
-      # fi
+      for tag in $tags; do
 
-      # set -x
+        if [ $(arch) = "aarch64" ]; then
+          image_tag="${base_image_uri}:${tag}-arm64"
+          pack builder create "${image_tag}" --config "builder-${tag}.toml"
 
-      # for tag in $toml_tags; do
+          # As of pack version 0.30.0-pre1 publishing with `--publish` will set the platform to linux/amd64 on arm64,
+          if [ ! -z "$PUBLISH" ]; then
+            echo "Publishing with buildx on arm64 to ensure image gets correct platform"
 
-      #   if [ $(arch) = "aarch64" ]; then
-      #     image_tag="${base_image_uri}:${tag}-arm64"
-      #     pack builder create "${image_tag}" --config "builder-${tag}.toml"
+            echo "FROM ${image_tag}" > Dockerfile
+            docker buildx build --platform linux/arm64 -t "${image_tag}" --push .
 
-      #     # As of pack version 0.30.0-pre1 publishing with `--publish` will set the platform to linux/amd64 on arm64,
-      #     if [ ! -z "$PUBLISH" ]; then
-      #       echo "Publishing with buildx on arm64 to ensure image gets correct platform"
+            # Remove local version so we can inspect architecture from the registry
+            docker image rm "${image_tag}"
+          fi
+        else
+          image_tag="${base_image_uri}:${tag}-amd64"
+          pack builder create "${image_tag}" --config "builder-${tag}.toml" $PUBLISH
+        fi
 
-      #       echo "FROM ${image_tag}" > Dockerfile
-      #       docker buildx build --platform linux/arm64 -t "${image_tag}" --push .
-
-      #       # Remove local version so we can inspect architecture from the registry
-      #       docker image rm "${image_tag}"
-      #     fi
-      #   else
-      #     image_tag="${base_image_uri}:${tag}-amd64"
-      #     pack builder create "${image_tag}" --config "builder-${tag}.toml" $PUBLISH
-      #   fi
-
-      #   docker pull "${image_tag}"
-      #   docker image inspect "${image_tag}" | jq .[0].Architecture
-      #   pack builder inspect "${image_tag}"
-      # done
+        docker pull "${image_tag}"
+        docker image inspect "${image_tag}" | jq .[0].Architecture
+        pack builder inspect "${image_tag}"
+      done
