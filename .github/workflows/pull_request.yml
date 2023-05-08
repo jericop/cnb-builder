@@ -10,6 +10,9 @@ jobs:
       uri: ${{ steps.image-uri.outputs.uri }}
       tags: ${{ steps.create-multi-arch-builders.outputs.tags }}
     steps:
+      - uses: actions/checkout@v3
+      - uses: docker/setup-qemu-action@v2
+      - uses: docker/setup-buildx-action@v2
       - id: image-uri
         run: echo "uri=ttl.sh/${{ github.repository }}/$(cat /proc/sys/kernel/random/uuid)" >> $GITHUB_OUTPUT
       - id: create-multi-arch-builders
