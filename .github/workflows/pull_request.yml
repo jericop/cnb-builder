@@ -16,7 +16,7 @@ jobs:
       - id: image-uri
         run: echo "uri=ttl.sh/${{ github.repository }}/$(cat /proc/sys/kernel/random/uuid)" >> $GITHUB_OUTPUT
       - id: create-multi-arch-builders
-        uses: jericop/github-actions/buildpacks/create-multi-arch-builders@v1.0.1
+        uses: jericop/github-actions/buildpacks/create-multi-arch-builders@v1.0.0
         with:
           path: 'jammy'
           base-image-uri: ${{ steps.image-uri.outputs.uri }}

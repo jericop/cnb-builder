@@ -19,7 +19,7 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GHCR_TOKEN }}
-      - uses: jericop/github-actions/buildpacks/create-multi-arch-builders@v1.0.1
+      - uses: jericop/github-actions/buildpacks/create-multi-arch-builders@v1.0.0
         with:
           path: 'jammy'
           base-image-uri: ${{ env.JAMMY_BASE_IMAGE_URI }}
