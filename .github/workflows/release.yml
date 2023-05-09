@@ -9,7 +9,6 @@ env:
 jobs:
   create-multi-arch-builders:
     runs-on: ubuntu-22.04
-    needs: create-arch-builders-matrix
     steps:
       - uses: actions/checkout@v3
       - uses: docker/setup-qemu-action@v2
