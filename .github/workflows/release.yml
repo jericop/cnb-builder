@@ -4,7 +4,6 @@ on:
     branches:
       - "main"
 env:
-  JAMMY_BASE_IMAGE_URI: 'ghcr.io/jericop/builder-jammy'
   DOCKER_CLI_EXPERIMENTAL: 'enabled'
 jobs:
   create-multi-arch-builders:
@@ -14,6 +13,7 @@ jobs:
       - uses: docker/setup-qemu-action@v2
       - uses: docker/setup-buildx-action@v2
       - uses: jericop/buildpacks-github-actions/setup-tools@add-arm64-support
+
       - uses: docker/login-action@v2
         with:
           registry: ghcr.io
@@ -22,5 +22,15 @@ jobs:
       - uses: jericop/github-actions/buildpacks/create-multi-arch-builders@v1.0.0
         with:
           path: 'jammy'
-          base-image-uri: ${{ env.JAMMY_BASE_IMAGE_URI }}
+          base-image-uri: 'ghcr.io/jericop/builder-jammy'
+          lifecycle-version: 'v0.16.3'
+
+      - uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - uses: jericop/github-actions/buildpacks/create-multi-arch-builders@v1.0.0
+        with:
+          path: 'jammy'
+          base-image-uri: 'jericop/builder-jammy'
           lifecycle-version: 'v0.16.3'

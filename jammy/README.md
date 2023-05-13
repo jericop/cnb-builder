@@ -6,8 +6,13 @@ These builders do not have buildpacks so they must be specified at build time.
 
 # Publishes the following images
 
+## github container registry
+
 * `ghcr.io/jericop/builder-jammy`
 
+## docker hub
+
+* `jericop/builder-jammy`
 
 # Image tags
 
@@ -17,4 +22,4 @@ These builders do not have buildpacks so they must be specified at build time.
   * see `builder-target.toml`
 * `latest`
   * see `builder-latest.toml`
-  * This is meant for backward compatibility because it includes stacks and new base (run/build) images
+  * This is meant for backward compatibility because it includes stack and new base (run/build) images
