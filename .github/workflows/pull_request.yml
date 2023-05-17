@@ -21,7 +21,7 @@ jobs:
         with:
           path: 'jammy'
           base-image-uri: ${{ steps.image-uri.outputs.uri }}
-          lifecycle-version: 'v0.16.3'
+          lifecycle-version: 'v0.17.0-pre.2'
 
   test-multi-arch-builders:
     strategy:
