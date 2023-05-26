@@ -21,7 +21,7 @@ jobs:
         with:
           path: 'jammy'
           base-image-uri: ${{ steps.image-uri.outputs.uri }}
-          lifecycle-version: 'v0.16.3'
+          lifecycle-version: 'v0.17.0-pre.2'
 
   test-multi-arch-builders:
     strategy:
@@ -33,7 +33,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: jericop/buildpacks-github-actions/setup-pack@add-arm64-support
         with:
-          pack-version: 0.30.0-pre1
+          pack-version: 0.30.0-pre2
       - uses: jericop/buildpacks-github-actions/setup-tools@add-arm64-support
       - id: create-builders
         uses: ./.github/actions/test-multi-arch-builders
